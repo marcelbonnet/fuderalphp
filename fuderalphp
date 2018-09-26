@@ -1,0 +1,49 @@
+#!/usr/local/bin/php -q
+<?php
+
+require_once 'vendor/autoload.php';
+Twig_Autoloader::register();
+
+error_reporting(E_ALL);
+
+$loader = new Twig_Loader_Filesystem('templates');
+$twig = new Twig_Environment($loader, array(
+    'cache' => 'cache',
+    'debug' => true,
+));
+$twig->addExtension(new Twig_Extension_Escaper(false));
+
+
+//$template = $twig->load('constructor.twig'); //Twig_TemplateWrapper
+//$template->render( [ ]);
+
+echo $twig->render('class.php', 
+	[
+		"license" => "Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) \n* https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+		"namespace" => "MyNamespace",
+		"docs" => [
+			"author" => "marcelbonnet@anatel.gov.br",
+			"date" => (new DateTime())->format("Y-m-d"),
+			"since" => "1.0-RELEASE"
+		],
+		"class_name" => "MyClass",
+		"class_modifier" => "abstract",
+		"extending_class" => [
+			[ "fqcn" => "My\Namespace\MyParentClass", "classname" => "MyParentClass" ]
+		],
+		"implementing_interfaces" => [
+			["fqcn" => "SlimCloud\Core\cmd\AbstractCommand", "classname" => "AbstractCommand"],
+			["fqcn" => "SlimCloud\Core\cmd\HomeCommand", "classname" => "HomeCommand"],
+		],
+		"constructor_parameters" => [ 
+			["classname" => "AcaoFiscalizacao", "name" => "acaoFiscalizacao"],
+			["classname" => "AgenteFiscalizacao", "name" => "agenteFiscalizacao"],
+		],
+		//================================
+		"class_properties" => [
+			["visibility" => "public", "is_const" => false, "is_static" => true, "name" => "name", "type" => "string" ],
+			["visibility" => "protected", "is_const" => false, "is_static" => false, "name" => "surname", "type" => "string" ],
+			["visibility" => "private", "is_const" => false, "is_static" => false, "name" => "birth", "type" => "\DateTime" ],
+		],
+	]
+);
