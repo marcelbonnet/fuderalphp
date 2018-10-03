@@ -57,6 +57,10 @@ use {{param.fqcn}};
 		{% for param in constructor_parameters %}
 			this.{{param.name}} = {{param.name}};
 		{% endfor %}
+
+		{% for b in constructorBody %}
+			{{b}};
+		{% endfor %}
 	}
 
 	{# ############### methods ################################# #}

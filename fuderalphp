@@ -193,6 +193,17 @@ function dal($xml, $twig) {
 			return $ret;
 		};
 
+		$constructorBody=function() use($classProperties){
+			$ret = [];
+			foreach ($classProperties() as $prop) {
+				if(!empty($prop['orm']) && (strcmp($prop['type'], "array") == 0 || !empty(strstr($prop['type'], "[]")) ) ){
+					array_push($ret, 
+						"\$this->".$prop['name']." = new Doctrine\Common\Collections\ArrayCollection()");
+				}
+			}
+			return $ret;
+		};
+
 
 		echo $twig->render('class.php', 
 			[
@@ -216,6 +227,7 @@ function dal($xml, $twig) {
 					["classname" => "", "name" => ""],
 					*/
 				],
+				"constructorBody" => $constructorBody(),
 				//================================
 				"class_constants" => $constants(),
 				"class_properties" => $classProperties(),
