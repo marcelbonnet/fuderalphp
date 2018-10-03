@@ -49,6 +49,7 @@ use {{param.fqcn}};
 		*/
 		{{prop.visibility}} {{prop.static}} ${{prop.name}};
 	{% endfor %}
+
 	/**
 	* Auto generated constructor.
 	*/
@@ -57,6 +58,17 @@ use {{param.fqcn}};
 			this.{{param.name}} = {{param.name}};
 		{% endfor %}
 	}
+
+	{# ############### methods ################################# #}
+
+	{% for m in methods %}
+		/**
+		* {{m.orm}}
+		*/
+		{{m.visibility}} {{m.static }} function {{m.functionName}}( {% for param in m.parameters %} /*{{param.type}}*/ {{param.name}} {% endfor %}){
+			{{m.body}}
+		}
+	{% endfor %}
 
 	{# ############### getters and setters ################################# #}
 

@@ -112,14 +112,15 @@
 		<method>
 			<orm>@PreUpdate</orm>
 			<visibility>public</visibility>
-			<static>false</static>
+			<static></static>
+			<returnType></returnType> <!-- TODO: PHP >= 7 -->
 			<function>updateDates</function>
 			<parameter>
 				<type>PreUpdateEventArgs</type>
 				<name>eventArgs</name>
 			</parameter>
-			<body>
-				if ($eventArgs->getEntity () instanceof User) {
+			<code>
+				if ($eventArgs->getEntity() instanceof User) {
 					if ($eventArgs->hasChangedField ( 'validated' )) {
 						$this->setValidatedDate(new \DateTime ());
 					}
@@ -128,7 +129,7 @@
 						$this->setActivatedDate(new \DateTime ());
 					}
 				}
-			</body>
+			</code>
 		</method>
 	</class>
 	<class name="UserRole" namespace="SlimCloud\Core\dao">
