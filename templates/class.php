@@ -43,12 +43,11 @@ use {{param.fqcn}};
 	{% endfor %}
 
 	{% for prop in class_properties %}
-		{% set static = prop.is_static ? "static" : "" %}
-		{% set const = prop.is_const ? "const" : "" %}
 		/**
+		* {{prop.orm}}
 		* @var {{prop.type}}
 		*/
-		{{prop.visibility}} {{static}} {{const}} ${{prop.name}};
+		{{prop.visibility}} {{prop.static}} ${{prop.name}};
 	{% endfor %}
 	/**
 	* Auto generated constructor.
@@ -62,12 +61,10 @@ use {{param.fqcn}};
 	{# ############### getters and setters ################################# #}
 
 	{% for prop in class_properties %}
-		{% set static = prop.is_static ? "static" : "" %}
-		{% set const = prop.is_const ? "const" : "" %}
 		/**
 		* @return {{prop.type}}
 		*/
-		{{prop.visibility}} {{static}} function get{{prop.name|capitalize}}(){
+		{{prop.visibility}} {{prop.static}} function get{{prop.name|capitalize}}(){
 			return $this->{{prop.name}};
 		}
 
@@ -75,7 +72,7 @@ use {{param.fqcn}};
 		* @param {{prop.type}} ${{prop.name}}
 		* @return {{class_name}}
 		*/
-		{{prop.visibility}} {{static}} function set{{prop.name|capitalize}}({{prop.type starts with '\\' ? prop.type : "" }} ${{prop.name}}){
+		{{prop.visibility}} {{prop.static}} function set{{prop.name|capitalize}}({{prop.type starts with '\\' ? prop.type : "" }} ${{prop.name}}){
 			$this->{{prop.name}} = ${{prop.name}};
 			return $this;
 		}

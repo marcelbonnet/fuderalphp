@@ -24,16 +24,22 @@
 			<varname>TEST_C</varname><value>789</value><label>"Another Test 789"</label>
 		</const>
 
-		<attribute><visibility>protected</visibility><type>integer</type><varname>id</varname><orm>@Id @GeneratedValue @Column(type="integer")</orm></attribute>
-		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>startDate</varname><orm>@Column(type="date")</orm></attribute>
-		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>dueDate</varname><orm>@Column(type="date")</orm></attribute>
-		<attribute><visibility>protected</visibility><type>integer</type><varname>status</varname><orm>@Column(type="smallint")</orm></attribute>
-		<attribute><visibility>protected</visibility><type>HumanResource</type><varname>owner</varname><orm>@OneToOne(targetEntity="HumanResource",cascade={"persist"}) @JoinColumn(name="fk_humanresource", referencedColumnName="id", nullable=false)</orm></attribute>
-		<attribute><visibility>protected</visibility><type>array</type><varname>children</varname><orm>@OneToMany(targetEntity="Project", mappedBy="parent")</orm></attribute>
-		<attribute><visibility>protected</visibility><type>Project</type><varname>parent</varname><orm>@ManyToOne(targetEntity="Project", inversedBy="children")</orm></attribute>
-		<attribute><visibility>protected</visibility><type>array</type><varname>tasks</varname><orm>@OneToMany(targetEntity="Task", mappedBy="project")</orm></attribute>
-		<attribute><visibility>protected</visibility><type>integer</type><varname>priority</varname><orm>@Column(type="smallint")</orm></attribute>
-		<attribute><visibility>protected</visibility><type>string</type><varname>description</varname><orm>@Column(type="text", nullable=true)</orm></attribute>
+		<attribute>
+			<visibility>protected</visibility>
+			<static></static>
+			<type namespace="">integer</type>
+			<varname>id</varname>
+			<orm>@Id @GeneratedValue @Column(type="integer")</orm>
+		</attribute>
+		<attribute><visibility>protected</visibility><type namespace="">\DateTime</type><varname>startDate</varname><orm>@Column(type="date")</orm></attribute>
+		<attribute><visibility>protected</visibility><type namespace="">\DateTime</type><varname>dueDate</varname><orm>@Column(type="date")</orm></attribute>
+		<attribute><visibility>protected</visibility><type namespace="">integer</type><varname>status</varname><orm>@Column(type="smallint")</orm></attribute>
+		<attribute><visibility>protected</visibility><type namespace="">HumanResource</type><varname>owner</varname><orm>@OneToOne(targetEntity="HumanResource",cascade={"persist"}) @JoinColumn(name="fk_humanresource", referencedColumnName="id", nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type namespace="">array</type><varname>children</varname><orm>@OneToMany(targetEntity="Project", mappedBy="parent")</orm></attribute>
+		<attribute><visibility>protected</visibility><type namespace="">Project</type><varname>parent</varname><orm>@ManyToOne(targetEntity="Project", inversedBy="children")</orm></attribute>
+		<attribute><visibility>protected</visibility><type namespace="">array</type><varname>tasks</varname><orm>@OneToMany(targetEntity="Task", mappedBy="project")</orm></attribute>
+		<attribute><visibility>protected</visibility><type namespace="">integer</type><varname>priority</varname><orm>@Column(type="smallint")</orm></attribute>
+		<attribute><visibility>protected</visibility><type namespace="">string</type><varname>description</varname><orm>@Column(type="text", nullable=true)</orm></attribute>
 	</class>
 	<class name="GenericResources" namespace="SlimCloud\Core\dao">
 		<orm>@MappedSuperclass</orm>

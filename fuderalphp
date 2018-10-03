@@ -129,9 +129,6 @@ function dal($xml, $twig) {
 			return $ret;
 		};
 
-		$attributes 	= $xp->query("attribute", $c);
-
-
 		$interfaces=function() use($xp, $c) {
 			$nodeList = $xp->query("implements", $c);
 			$ret = [];
@@ -148,10 +145,27 @@ function dal($xml, $twig) {
 			return $ret;
 		};
 
-		$classOrm 		= [];
-		$contants		= [];
-		$attributes		= [];
-		$methods		= [];
+		$classProperties=function() use($xp, $c) {
+			$nodeList = $xp->query("attribute", $c);
+			$ret = [];
+			foreach ($nodeList as $node) {
+				$className = $node->nodeValue;
+				$static = $xp->query("static", $node)[0];
+				if(empty($className)) continue;
+				$o = [
+					"visibility" => $node->getElementsByTagName("visibility")[0]->nodeValue ,
+					"static" => empty($static) || strcmp($static->nodeValue, "static") != 0 ? "" : "static" ,
+					"orm" =>  $node->getElementsByTagName("orm")[0]->nodeValue,
+					"type" => $node->getElementsByTagName("type")[0]->nodeValue ,
+					"name" => $node->getElementsByTagName("varname")[0]->nodeValue
+				];
+				array_push($ret, $o);
+			}
+			return $ret;
+		};
+
+
+		
 
 
 		echo $twig->render('class.php', 
@@ -172,17 +186,13 @@ function dal($xml, $twig) {
 				"implementing_interfaces" => $interfaces(),
 				"constructor_parameters" => [ 
 					/*
-					["classname" => "AcaoFiscalizacao", "name" => "acaoFiscalizacao"],
-					["classname" => "AgenteFiscalizacao", "name" => "agenteFiscalizacao"],
+					["classname" => "", "name" => ""],
+					["classname" => "", "name" => ""],
 					*/
 				],
 				//================================
 				"class_constants" => $constants(),
-				"class_properties" => [
-					["visibility" => "public", "is_const" => false, "is_static" => true, "name" => "name", "type" => "string" ],
-					["visibility" => "protected", "is_const" => false, "is_static" => false, "name" => "surname", "type" => "string" ],
-					["visibility" => "private", "is_const" => false, "is_static" => false, "name" => "birth", "type" => "\DateTime" ],
-				],
+				"class_properties" => $classProperties(),
 			]
 		);
 
