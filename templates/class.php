@@ -29,10 +29,17 @@ use {{param.fqcn}};
 {{class_visibility}} class {{class_name}} {% if extending_class and extending_class[0].classname is not empty %}extends {{extending_class[0].classname}} {% endif %}{% if implementing_interfaces is not empty %}implements {% for param in implementing_interfaces %}{{param.classname}}{% if not loop.last %},{% endif %} {% endfor %}{% endif %} {
 	
 	{% for c in class_constants %}
-		{{c.tuple[0].val}}
-		{% for t in c.tuple %}
-			const {{t.varname}};
+		{% for v in c.varname %}
+			const {{v}} = {{c.value[loop.index0]}};
 		{% endfor %}
+	{% endfor %}
+
+	{% for c in class_constants %}
+		const {{c.group}} = [
+			{% for val in c.varname %}
+			self::{{val}} => {{c.label[loop.index0]}} {% if not loop.last %},{% endif %}
+			{% endfor %}
+		];
 	{% endfor %}
 
 	{% for prop in class_properties %}

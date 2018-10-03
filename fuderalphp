@@ -111,13 +111,19 @@ function dal($xml, $twig) {
 			foreach ($nodeList as $node) {
 				$o = [
 					"group" => $node->getAttribute('group'),
-					"tuple" => [
-						"varname"	=> $xp->query("varname", $node),
-						"value"	=> $xp->query("value", $node),
-						"label"	=> $xp->query("label", $node),
-					]
+					"varname" => [],
+					"value" => [],
+					"label" => []
 				];
-				var_dump($o["tuple"]["value"][2]);
+				foreach ($xp->query("varname", $node) as $el) {
+					array_push($o['varname'], $el->nodeValue);
+				}				
+				foreach ($xp->query("value", $node) as $el) {
+					array_push($o['value'], $el->nodeValue);
+				}
+				foreach ($xp->query("label", $node) as $el) {
+					array_push($o['label'], $el->nodeValue);
+				}
 				array_push($ret, $o);
 			}
 			return $ret;
