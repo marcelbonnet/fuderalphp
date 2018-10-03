@@ -1,0 +1,138 @@
+# pseudo class modeling
+#[protected | private] class Author [extends] {className} [implements] {className, ...}
+# IMPLICIT: protected integer id @Id @GeneratedValue @Column(type="integer")
+
+[class]
+@Entity
+@Table(name="core__projects", indexes={@Index(name="nameIDX", columns={"name"}) })
+class Project
+	const STATUS_NOT_DEFINED 0 "Undefined"
+	const STATUS_PROPOSED 1 "Proposed"
+	const STATUS_IN_PLANNING 2 "In Planning"
+	const STATUS_IN_PROGRESS 3 "In Progress"
+	const STATUS_ON_HOLD 4 "On Hold"
+	const STATUS_COMPLETE 5 "Complete"
+	const STATUS_TEMPLATE 6 "Template"
+	const STATUS_ARCHIVED 7 "Archived"
+
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected \DateTime startDate @Column(type="date")
+	protected \DateTime dueDate @Column(type="date")
+	protected integer status @Column(type="smallint")
+	protected HumanResource owner @OneToOne(targetEntity="HumanResource",cascade={"persist"}) @JoinColumn(name="fk_humanresource", referencedColumnName="id", nullable=false)
+	protected array children @OneToMany(targetEntity="Project", mappedBy="parent")
+	protected Project parent @ManyToOne(targetEntity="Project", inversedBy="children")
+	protected array tasks @OneToMany(targetEntity="Task", mappedBy="project")
+	protected integer priority @Column(type="smallint")
+	protected string description @Column(type="text", nullable=true)
+
+[class]
+@MappedSuperclass
+class GenericResources
+    protected string name @Column(type="string", length=100)
+    protected string about @Column(type="string", length=255, nullable=true)
+
+[class]
+@Entity 
+@Table(name="core__humanresources")
+class HumanResource extends GenericResources
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected User user @OneToOne(targetEntity="User") @JoinColumn(name="fk_user", referencedColumnName="id")
+
+[class]
+@Entity 
+@Table(name="core__metadata")
+class MetaData
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected string name @Column(type="string", length=255, nullable=false)
+	protected string value @Column(type="text", nullable=false)
+
+[class]
+@Entity 
+@Table(name="core__resources")
+class Resources extends GenericResources
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected string type @Column(type="string", length=100, nullable=false)
+
+[class]
+@Entity
+@Table(name="core__tasks")
+class Task
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected \DateTime startDate @Column(type="date")
+	protected \DateTime dueDate @Column(type="date")
+	protected integer percentDone @Column(type="integer")
+	protected string name @Column(type="text", length=40, nullable=true)
+	protected array children @OneToMany(targetEntity="Task", mappedBy="parent")
+	protected Task parent @ManyToOne(targetEntity="Task", inversedBy="children")
+	protected Project project @ManyToOne(targetEntity="Project", inversedBy="tasks") @JoinColumn(name="fk_project", referencedColumnName="id", nullable=true)
+	protected array assignees @ManyToMany(targetEntity="HumanResource",cascade={"persist"}) @JoinTable(name="core__tasks_humanresources",joinColumns={@JoinColumn(name="fk_task", referencedColumnName="id", nullable=false)}, inverseJoinColumns={@JoinColumn( name="fk_humanresource", referencedColumnName="id", nullable=false)})
+	protected array resources @ManyToMany(targetEntity="Resources",cascade={"persist"}) @JoinTable(name="core__tasks_resources",joinColumns={@JoinColumn( name="fk_task", referencedColumnName="id",  nullable=true)}, inverseJoinColumns={@JoinColumn( name="fk_resource", referencedColumnName="id", nullable=true)})
+	protected array artifacts @ManyToMany(targetEntity="Artifact",cascade={"persist"}) @JoinTable(name="core__tasks_artifacts",joinColumns={@JoinColumn( name="fk_task", referencedColumnName="id",  nullable=true)}, inverseJoinColumns={@JoinColumn( name="fk_artifact", referencedColumnName="id", nullable=true)})
+	protected integer priority @Column(type="smallint")
+	protected string description @Column(type="text", nullable=true)
+
+[class]
+@Entity(repositoryClass="UserRepository")
+@Table(name="core__users", uniqueConstraints={ @UniqueConstraint( name="username_idx", columns={"username"})})
+@HasLifecycleCallbacks
+class User
+# implicit id
+	protected string username @Column(type="string", length=255, nullable=false)
+	protected string passwordHash @Column(type="string", length=255, nullable=true)
+	protected UserRole[] userRoles @OneToMany(targetEntity="UserRole", mappedBy="user", cascade={"persist", "remove"})
+	protected string uuid @Column(type="string", length=255, nullable=false)
+	protected \DateTime uuidExpireDate @Column(type="datetime", nullable=false)
+	protected \DateTime validatedDate @Column(type="datetime", nullable=true)
+	protected boolean validated @Column(type="boolean", nullable=false)
+	protected boolean activated @Column(type="boolean", nullable=false)
+	protected UserRole[] userRolesResponsible @OneToMany(targetEntity="UserRole", mappedBy="responsible", cascade={"persist", "remove"})
+
+	protected string title @Column(type="string", length=30, nullable=false)
+	protected \DateTime publishedAt @Column(type="datetime", nullable=true)
+	protected integer type @Column(type="integer", nullable=false)
+
+	[method]
+	@PreUpdate
+	public function updateDates(PreUpdateEventArgs $eventArgs){
+		
+		if ($eventArgs->getEntity () instanceof User) {
+			if ($eventArgs->hasChangedField ( 'validated' )) {
+				$this->setValidatedDate(new \DateTime ());
+			}
+			
+			if ($eventArgs->hasChangedField ( 'activated' )) {
+				$this->setActivatedDate(new \DateTime ());
+			}
+		}
+		
+	}
+	[endmethod]
+
+[class]
+@Entity
+@Table(name="core__user_roles", uniqueConstraints={ @UniqueConstraint( name="role_idx", columns={"fk_user_id","role"} )})
+class UserRole
+# implicit id
+	protected string role @Column(type="string", length=255, nullable=false)
+	protected \DateTime createdDate @Column(type="datetime", nullable=false)
+	protected User parent @ManyToOne(targetEntity="User", inversedBy="userRoles", cascade={"persist"}) @JoinColumn(name="fk_user_id", referencedColumnName="id", nullable=false)
+	protected User parent @ManyToOne(targetEntity="User", inversedBy="userRolesResponsible", cascade={"persist"}) @JoinColumn(name="fk_user_id_responsible", referencedColumnName="id", nullable=true)
+
+
+[class]
+@Entity
+@Table(name="books")
+class Book
+	const BOOK_TYPE 7
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected AbstractBook abstractBook @OneToOne(targetEntity="AbstractBook",cascade={"persist"}) @JoinColumn(name="fk_abstract_book", referencedColumnName="id")
+
+[class]
+@Entity
+@Table(name="genres")
+class Genre
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected array children @OneToMany(targetEntity="Genre", mappedBy="parent", cascade={"persist"})
+	protected Genre parent @ManyToOne(targetEntity="Genre", inversedBy="children") @JoinColumn(name="fk_parent", referencedColumnName="id")
+	protected string name @Column(type="string", length=30, nullable=false)

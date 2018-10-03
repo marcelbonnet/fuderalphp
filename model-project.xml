@@ -1,0 +1,136 @@
+<fuderal>
+	<class name="Project" extends="" visibility="" namespace="SlimCloud\Core\dao">
+		<!--
+		<implements namespace="Meu\Namespace" alias="MinhaInterface">MinhaSuperInterface</implements>
+		<implements namespace="" alias=""></implements>
+		<implements namespace="" alias=""></implements>
+		-->
+		<orm>@Entity</orm>
+		<orm>@Table(name="core__projects", indexes={@Index(name="nameIDX", columns={"name"}) })</orm>
+		<const group="STATUS">
+			<varname>STATUS_NOT_DEFINED</varname><value>0</value><label>"Undefined"</label>
+			<varname>STATUS_PROPOSED</varname><value>1</value><label>"Proposed"</label> 
+			<varname>STATUS_IN_PLANNING</varname><value>2</value><label>"In Planning"</label> 
+			<varname>STATUS_IN_PROGRESS</varname><value>3</value><label>"In Progress"</label> 
+			<varname>STATUS_ON_HOLD</varname><value>4</value><label>"On Hold"</label> 
+			<varname>STATUS_COMPLETE</varname><value>5</value><label>"Complete"</label> 
+			<varname>STATUS_TEMPLATE</varname><value>6</value><label>"Template"</label> 
+			<varname>STATUS_ARCHIVED</varname><value>7</value><label>"Archived"</label>
+		</const>
+
+		<const group="TEST">
+			<varname>TEST_A</varname><value>123</value><label>"Test 123"</label>
+			<varname>TEST_B</varname><value>456</value><label>"Testing 456"</label>
+			<varname>TEST_C</varname><value>789</value><label>"Another Test 789"</label>
+		</const>
+
+		<attribute><visibility>protected</visibility><type>integer</type><varname>id</varname><orm>@Id @GeneratedValue @Column(type="integer")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>startDate</varname><orm>@Column(type="date")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>dueDate</varname><orm>@Column(type="date")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>status</varname><orm>@Column(type="smallint")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>HumanResource</type><varname>owner</varname><orm>@OneToOne(targetEntity="HumanResource",cascade={"persist"}) @JoinColumn(name="fk_humanresource", referencedColumnName="id", nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>array</type><varname>children</varname><orm>@OneToMany(targetEntity="Project", mappedBy="parent")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>Project</type><varname>parent</varname><orm>@ManyToOne(targetEntity="Project", inversedBy="children")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>array</type><varname>tasks</varname><orm>@OneToMany(targetEntity="Task", mappedBy="project")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>priority</varname><orm>@Column(type="smallint")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>description</varname><orm>@Column(type="text", nullable=true)</orm></attribute>
+	</class>
+	<class name="GenericResources" namespace="SlimCloud\Core\dao">
+		<orm>@MappedSuperclass</orm>
+		<attribute>
+			<visibility>protected</visibility>
+			<type>string</type>
+			<varname>name</varname>
+			<orm>@Column(type="string", length=100)</orm>
+		</attribute>
+		<attribute>
+			<visibility>protected</visibility>
+			<type>string</type>
+			<varname>about</varname>
+			<orm>@Column(type="string", length=255, nullable=true)</orm>
+		</attribute>
+	</class>
+	<class name="HumanResource" extends="GenericResources" parent_namespace="SlimCloud\Core\dao" parent_alias="" namespace="SlimCloud\Core\dao">
+		<orm>@Entity</orm>
+		<orm>@Table(name="core__humanresources")</orm>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>id</varname><orm>@Id @GeneratedValue @Column(type="integer")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>User</type><varname>user</varname><orm>@OneToOne(targetEntity="User") @JoinColumn(name="fk_user", referencedColumnName="id")</orm></attribute>
+	</class>
+	<class name="MetaData" namespace="SlimCloud\Core\dao">
+		<orm>@Entity</orm>
+		<orm>@Table(name="core__metadata")</orm>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>id</varname><orm>@Id @GeneratedValue @Column(type="integer")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>name</varname><orm>@Column(type="string", length=255, nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>value</varname><orm>@Column(type="text", nullable=false)</orm></attribute>
+	</class>
+	<class name="Resources" extends="GenericResources" parent_namespace="SlimCloud\Core\dao" parent_alias="" namespace="SlimCloud\Core\dao">
+		<orm>@Entity</orm>
+		<orm>@Table(name="core__resources")</orm>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>id</varname><orm>@Id @GeneratedValue @Column(type="integer")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>type</varname><orm>@Column(type="string", length=100, nullable=false)</orm></attribute>
+	</class>
+	<class name="Task" extends="" namespace="SlimCloud\Core\dao">
+		<orm>@Entity</orm>
+		<orm>@Table(name="core__tasks")</orm>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>id</varname><orm>@Id @GeneratedValue @Column(type="integer")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>startDate</varname><orm>@Column(type="date")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>dueDate</varname><orm>@Column(type="date")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>percentDone</varname><orm>@Column(type="integer")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>name</varname><orm>@Column(type="text", length=40, nullable=true)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>array</type><varname>children</varname><orm>@OneToMany(targetEntity="Task", mappedBy="parent")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>Task</type><varname>parent</varname><orm>@ManyToOne(targetEntity="Task", inversedBy="children")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>Project</type><varname>project</varname><orm>@ManyToOne(targetEntity="Project", inversedBy="tasks") @JoinColumn(name="fk_project", referencedColumnName="id", nullable=true)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>array</type><varname>assignees</varname><orm>@ManyToMany(targetEntity="HumanResource",cascade={"persist"}) @JoinTable(name="core__tasks_humanresources",joinColumns={@JoinColumn(name="fk_task", referencedColumnName="id", nullable=false)}, inverseJoinColumns={@JoinColumn( name="fk_humanresource", referencedColumnName="id", nullable=false)})</orm></attribute>
+		<attribute><visibility>protected</visibility><type>array</type><varname>resources</varname><orm>@ManyToMany(targetEntity="Resources",cascade={"persist"}) @JoinTable(name="core__tasks_resources",joinColumns={@JoinColumn( name="fk_task", referencedColumnName="id",  nullable=true)}, inverseJoinColumns={@JoinColumn( name="fk_resource", referencedColumnName="id", nullable=true)})</orm></attribute>
+		<attribute><visibility>protected</visibility><type>array</type><varname>artifacts</varname><orm>@ManyToMany(targetEntity="Artifact",cascade={"persist"}) @JoinTable(name="core__tasks_artifacts",joinColumns={@JoinColumn( name="fk_task", referencedColumnName="id",  nullable=true)}, inverseJoinColumns={@JoinColumn( name="fk_artifact", referencedColumnName="id", nullable=true)})</orm></attribute>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>priority</varname><orm>@Column(type="smallint")</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>description</varname><orm>@Column(type="text", nullable=true)</orm></attribute>
+	</class>
+	<class name="User" extends="" namespace="SlimCloud\Core\dao">
+		<orm>@Entity(repositoryClass="UserRepository")</orm>
+		<orm>@Table(name="core__users", uniqueConstraints={ @UniqueConstraint( name="username_idx", columns={"username"})})</orm>
+		<orm>@HasLifecycleCallbacks</orm>
+		<attribute><visibility>protected</visibility><type>string</type><varname>username</varname><orm>@Column(type="string", length=255, nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>passwordHash</varname><orm>@Column(type="string", length=255, nullable=true)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>UserRole[]</type><varname>userRoles</varname><orm>@OneToMany(targetEntity="UserRole", mappedBy="user", cascade={"persist", "remove"})</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>uuid</varname><orm>@Column(type="string", length=255, nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>uuidExpireDate</varname><orm>@Column(type="datetime", nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>validatedDate</varname><orm>@Column(type="datetime", nullable=true)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>boolean</type><varname>validated</varname><orm>@Column(type="boolean", nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>boolean</type><varname>activated</varname><orm>@Column(type="boolean", nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>UserRole[]</type><varname>userRolesResponsible</varname><orm>@OneToMany(targetEntity="UserRole", mappedBy="responsible", cascade={"persist", "remove"})</orm></attribute>
+		</orm></attribute>
+		<attribute><visibility>protected</visibility><type>string</type><varname>title</varname><orm>@Column(type="string", length=30, nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>publishedAt</varname><orm>@Column(type="datetime", nullable=true)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>integer</type><varname>type</varname><orm>@Column(type="integer", nullable=false)</orm></attribute>
+		<method>
+			<orm>@PreUpdate</orm>
+			<visibility>public</visibility>
+			<static>false</static>
+			<function>updateDates</function>
+			<parameter>
+				<type>PreUpdateEventArgs</type>
+				<name>eventArgs</name>
+			</parameter>
+			<body>
+				if ($eventArgs->getEntity () instanceof User) {
+					if ($eventArgs->hasChangedField ( 'validated' )) {
+						$this->setValidatedDate(new \DateTime ());
+					}
+					
+					if ($eventArgs->hasChangedField ( 'activated' )) {
+						$this->setActivatedDate(new \DateTime ());
+					}
+				}
+			</body>
+		</method>
+	</class>
+	<class name="UserRole" namespace="SlimCloud\Core\dao">
+		<orm>@Entity</orm>
+		<orm>@Table(name="core__user_roles", uniqueConstraints={ @UniqueConstraint( name="role_idx", columns={"fk_user_id","role"} )})</orm>
+		<attribute><visibility>protected</visibility><type>string</type><varname>role</varname><orm>@Column(type="string", length=255, nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>createdDate</varname><orm>@Column(type="datetime", nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>User</type><varname>parent</varname><orm>@ManyToOne(targetEntity="User", inversedBy="userRoles", cascade={"persist"}) @JoinColumn(name="fk_user_id", referencedColumnName="id", nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>User</type><varname>parent</varname><orm>@ManyToOne(targetEntity="User", inversedBy="userRolesResponsible", cascade={"persist"}) @JoinColumn(name="fk_user_id_responsible", referencedColumnName="id", nullable=true)</orm></attribute>
+	</class>
+</fuderal>

@@ -8,12 +8,187 @@ error_reporting(E_ALL);
 
 $loader = new Twig_Loader_Filesystem('templates');
 $twig = new Twig_Environment($loader, array(
-    'cache' => 'cache',
     'debug' => true,
 ));
 $twig->addExtension(new Twig_Extension_Escaper(false));
 
 
+$installPath=$argv[1];
+$appName=$argv[2];
+
+function createDirectoryLayout($installPath=null, $appName=null){
+
+	if(empty($appName)) trigger_error("App name must be entered", E_USER_ERROR);
+
+	if(!file_exists($installPath))
+		trigger_error("Directory $installPath must exist.", E_USER_ERROR);
+
+	if(!is_writable(($installPath)) )
+		trigger_error( "$installPath must be writable.", E_USER_ERROR);
+
+	$handle = fopen("dir_layout", "r");
+	
+	if(!$handle)
+		trigger_error("Can't find directory layout schema", E_USER_ERROR);
+
+	mkdir($installPath . DIRECTORY_SEPARATOR . $appName);
+
+	$lastPath = "";
+	while(!feof($handle)){
+		$dir = fgets($handle);
+
+		if(empty($lastPath))
+			$lastPath = trim($dir);
+
+		if(substr_count($dir, "\t") > 0){
+			$dirLevels = substr_count($dir, "\t");
+			$pathLevels = substr_count($lastPath, DIRECTORY_SEPARATOR);
+			
+			if($dirLevels > $pathLevels){
+				$lastPath .= DIRECTORY_SEPARATOR . trim($dir);
+			} elseif($dirLevels < $pathLevels){
+				$lastPath = substr($lastPath, 0, strrpos($lastPath, DIRECTORY_SEPARATOR) );
+				$lastPath = substr($lastPath, 0, strrpos($lastPath, DIRECTORY_SEPARATOR) ) . DIRECTORY_SEPARATOR . trim($dir);
+			} else {
+				$lastPath = substr($lastPath, 0, strrpos($lastPath, DIRECTORY_SEPARATOR) );
+				$lastPath .= DIRECTORY_SEPARATOR . trim($dir);
+			}
+		} else{
+			$lastPath = trim($dir);
+		}
+
+		if(empty($lastPath))
+			return;
+		
+		
+		$newDirectory = $installPath . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR . $lastPath;
+		$dirWasCreatead = mkdir($newDirectory);
+		
+		if($dirWasCreatead)
+			echo "mkdir $newDirectory ... OK" . PHP_EOL;
+		else
+			echo "mkdir $newDirectory ... FAIL" . PHP_EOL;
+	}
+}
+
+function dal($xml, $twig) {
+	libxml_use_internal_errors ( true );
+	
+	$doc = new \DOMDocument ();
+	$doc->loadHTML( $xml);
+	$xp = new \DOMXPath ( $doc );
+	$classes = $xp->query("//fuderal/class");
+
+	//var_dump($xp->query("var", $constants[0])[0]->nodeValue);
+
+	//var_dump($attributes[0]);
+	foreach($classes as $c){
+		$className 		= $c->getAttribute('name');
+		$parentClass 	= $c->getAttribute('extends');
+		$parentNamespace= $c->getAttribute('parent_namespace');
+		$parentAlias 	= $c->getAttribute('parent_alias');
+		$classVisibility= $c->getAttribute('visibility');
+		$namespace 		= $c->getAttribute('namespace');
+
+		
+		$classOrmMapping=function() use($xp, $c) {
+			$nodeList = $xp->query("orm", $c);
+			$ret = [];
+			foreach ($nodeList as $node) {
+				$annotation = $node->nodeValue;
+				if(empty($annotation)) continue;
+				$o = [
+					"annotation" => $annotation
+				];
+				array_push($ret, $o);
+			}
+			return $ret;
+		};
+
+		$constants=function() use($xp, $c) {
+			$nodeList = $xp->query("const", $c);
+			$ret = [];
+			foreach ($nodeList as $node) {
+				$o = [
+					"group" => $node->getAttribute('group'),
+					"tuple" => [
+						"varname"	=> $xp->query("varname", $node),
+						"value"	=> $xp->query("value", $node),
+						"label"	=> $xp->query("label", $node),
+					]
+				];
+				var_dump($o["tuple"]["value"][2]);
+				array_push($ret, $o);
+			}
+			return $ret;
+		};
+
+		$attributes 	= $xp->query("attribute", $c);
+
+
+		$interfaces=function() use($xp, $c) {
+			$nodeList = $xp->query("implements", $c);
+			$ret = [];
+			foreach ($nodeList as $node) {
+				$className = $node->nodeValue;
+				if(empty($className)) continue;
+				$o = [
+					"fqcn" => $node->getAttribute('namespace') ."\\". $className ,
+					"alias" => $node->getAttribute('alias') ,
+					"classname" => $className
+				];
+				array_push($ret, $o);
+			}
+			return $ret;
+		};
+
+		$classOrm 		= [];
+		$contants		= [];
+		$attributes		= [];
+		$methods		= [];
+
+
+		echo $twig->render('class.php', 
+			[
+				"license" => "Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) \n* https://creativecommons.org/licenses/by-sa/4.0/legalcode",
+				"namespace" => "$namespace",
+				"docs" => [
+					"author" => "marcelbonnet@anatel.gov.br",
+					"date" => (new DateTime())->format("Y-m-d"),
+					"since" => "1.0-SNAPSHOT"
+				],
+				"class_orm" => $classOrmMapping(),
+				"class_name" => "$className",
+				"class_visibility" => "$classVisibility",
+				"extending_class" => [
+					[ "fqcn" => "$parentNamespace\\$parentClass", "alias" => "$parentAlias", "classname" => "$parentClass" ]
+				],
+				"implementing_interfaces" => $interfaces(),
+				"constructor_parameters" => [ 
+					/*
+					["classname" => "AcaoFiscalizacao", "name" => "acaoFiscalizacao"],
+					["classname" => "AgenteFiscalizacao", "name" => "agenteFiscalizacao"],
+					*/
+				],
+				//================================
+				"class_constants" => $constants(),
+				"class_properties" => [
+					["visibility" => "public", "is_const" => false, "is_static" => true, "name" => "name", "type" => "string" ],
+					["visibility" => "protected", "is_const" => false, "is_static" => false, "name" => "surname", "type" => "string" ],
+					["visibility" => "private", "is_const" => false, "is_static" => false, "name" => "birth", "type" => "\DateTime" ],
+				],
+			]
+		);
+
+
+	}//classes
+}
+
+
+dal(file_get_contents("model-project.xml",'r'), $twig);
+#createDirectoryLayout($argv[1], $argv[2]);
+exit;
+/*
 //$template = $twig->load('constructor.twig'); //Twig_TemplateWrapper
 //$template->render( [ ]);
 
@@ -47,3 +222,4 @@ echo $twig->render('class.php',
 		],
 	]
 );
+*/

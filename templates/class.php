@@ -10,7 +10,9 @@ namespace {{namespace}};
 {% endif %}
 
 {% for param in implementing_interfaces|merge(extending_class)|sort %}
+{% if param.classname is not empty %}
 use {{param.fqcn}};
+{% endif %}
 {% endfor %}
 
 {% if docs %}
@@ -18,10 +20,21 @@ use {{param.fqcn}};
 {% for key,val in docs %}
 * @{{key}} {{val}}
 {% endfor %}
+* 
+{% for param in class_orm %}
+* {{param.annotation}}
+{% endfor %}
 */
 {% endif %}
-{{class_modifier}} class {{class_name}} {% if extending_class %}extends {{extending_class[0].classname}} {% endif %}implements {% for param in implementing_interfaces %}{{param.classname}}{% if not loop.last %},{% endif %} {% endfor %} {
+{{class_visibility}} class {{class_name}} {% if extending_class and extending_class[0].classname is not empty %}extends {{extending_class[0].classname}} {% endif %}{% if implementing_interfaces is not empty %}implements {% for param in implementing_interfaces %}{{param.classname}}{% if not loop.last %},{% endif %} {% endfor %}{% endif %} {
 	
+	{% for c in class_constants %}
+		{{c.tuple[0].val}}
+		{% for t in c.tuple %}
+			const {{t.varname}};
+		{% endfor %}
+	{% endfor %}
+
 	{% for prop in class_properties %}
 		{% set static = prop.is_static ? "static" : "" %}
 		{% set const = prop.is_const ? "const" : "" %}

@@ -1,0 +1,22 @@
+app
+	lang
+	plugins
+	res
+	src
+		app
+			captcha
+			event
+			middleware
+		cmd
+			auth
+		ctrl
+		dao
+		plugin
+		util
+	templates
+conf
+docs
+logs
+sql
+tmp
+scripts

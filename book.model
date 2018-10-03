@@ -1,0 +1,36 @@
+# pseudo class modeling
+#[protected | private] class Author [extends] {className} [implements] {className, ...}
+
+[class]
+@Entity
+@Table(name="authors", indexes={@Index(name="authorNameIDX", columns={"nome"}) })
+class Author
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected array books @OneToMany(targetEntity="Book", mappedBy="author", cascade={"persist"})
+	protected string name @Column(type="string", length=50, nullable=false)
+
+[class]
+@Entity
+@Table(name="abstract_books")
+class AbstractBook
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected string title @Column(type="string", length=30, nullable=false)
+	protected \DateTime publishedAt @Column(type="datetime", nullable=true)
+	protected integer type @Column(type="integer", nullable=false)
+
+[class]
+@Entity
+@Table(name="books")
+class Book
+	const BOOK_TYPE 7
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected AbstractBook abstractBook @OneToOne(targetEntity="AbstractBook",cascade={"persist"}) @JoinColumn(name="fk_abstract_book", referencedColumnName="id")
+
+[class]
+@Entity
+@Table(name="genres")
+class Genre
+	protected integer id @Id @GeneratedValue @Column(type="integer")
+	protected array children @OneToMany(targetEntity="Genre", mappedBy="parent", cascade={"persist"})
+	protected Genre parent @ManyToOne(targetEntity="Genre", inversedBy="children") @JoinColumn(name="fk_parent", referencedColumnName="id")
+	protected string name @Column(type="string", length=30, nullable=false)
