@@ -47,7 +47,7 @@ use {{param.fqcn}};
 		* {{prop.orm}}
 		* @var {{prop.type}}
 		*/
-		{{prop.visibility}} {{prop.static}} ${{prop.name}};
+		{{prop.visibility}} {{prop.static}} ${{prop.name}} {% if prop.init is not empty %} = {{- prop.init -}} {%endif%};
 	{% endfor %}
 
 	/**
@@ -69,7 +69,7 @@ use {{param.fqcn}};
 		/**
 		* {{m.orm}}
 		*/
-		{{m.visibility}} {{m.static }} function {{m.functionName}}( {% for param in m.parameters %} /*{{param.type}}*/ {{param.name}} {% endfor %}){
+		{{m.visibility}} {{m.static }} function {{m.functionName}}( {% for param in m.parameters %} /*{{param.type}}*/ ${{param.name}} {% endfor %}){
 			{{m.body}}
 		}
 	{% endfor %}

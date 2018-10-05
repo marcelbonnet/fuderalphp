@@ -137,7 +137,7 @@
 		<orm>@Table(name="core__user_roles", uniqueConstraints={ @UniqueConstraint( name="role_idx", columns={"fk_user_id","role"} )})</orm>
 		<attribute><visibility>protected</visibility><type>string</type><varname>role</varname><orm>@Column(type="string", length=255, nullable=false)</orm></attribute>
 		<attribute><visibility>protected</visibility><type>\DateTime</type><varname>createdDate</varname><orm>@Column(type="datetime", nullable=false)</orm></attribute>
-		<attribute><visibility>protected</visibility><type>User</type><varname>parent</varname><orm>@ManyToOne(targetEntity="User", inversedBy="userRoles", cascade={"persist"}) @JoinColumn(name="fk_user_id", referencedColumnName="id", nullable=false)</orm></attribute>
-		<attribute><visibility>protected</visibility><type>User</type><varname>parent</varname><orm>@ManyToOne(targetEntity="User", inversedBy="userRolesResponsible", cascade={"persist"}) @JoinColumn(name="fk_user_id_responsible", referencedColumnName="id", nullable=true)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>User</type><varname>user</varname><init>null</init><orm>@ManyToOne(targetEntity="User", inversedBy="userRoles", cascade={"persist"}) @JoinColumn(name="fk_user_id", referencedColumnName="id", nullable=false)</orm></attribute>
+		<attribute><visibility>protected</visibility><type>User</type><varname>responsible</varname><init>null</init><orm>@ManyToOne(targetEntity="User", inversedBy="userRolesResponsible", cascade={"persist"}) @JoinColumn(name="fk_user_id_responsible", referencedColumnName="id", nullable=true)</orm></attribute>
 	</class>
 </fuderal>

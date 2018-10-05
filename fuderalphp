@@ -15,6 +15,7 @@ $twig->addExtension(new Twig_Extension_Escaper(false));
 
 $installPath=$argv[1];
 $appName=$argv[2];
+$xml=$argv[3];
 
 function createDirectoryLayout($installPath=null, $appName=null){
 
@@ -66,12 +67,14 @@ function createDirectoryLayout($installPath=null, $appName=null){
 		
 		if($dirWasCreatead)
 			echo "mkdir $newDirectory ... OK" . PHP_EOL;
-		else
+		else {
 			echo "mkdir $newDirectory ... FAIL" . PHP_EOL;
+			die;
+		}
 	}
 }
 
-function dal($xml, $twig) {
+function dal($xml, $twig, $installPath, $appName) {
 	libxml_use_internal_errors ( true );
 	
 	$doc = new \DOMDocument ();
@@ -80,7 +83,6 @@ function dal($xml, $twig) {
 	$classes = $xp->query("//fuderal/class");
 
 	//var_dump($xp->query("var", $constants[0])[0]->nodeValue);
-
 	//var_dump($attributes[0]);
 	foreach($classes as $c){
 		$className 		= $c->getAttribute('name');
@@ -150,14 +152,16 @@ function dal($xml, $twig) {
 			$ret = [];
 			foreach ($nodeList as $node) {
 				$className = $node->nodeValue;
-				$static = $xp->query("static", $node)[0];
 				if(empty($className)) continue;
+				$static = $xp->query("static", $node)[0];
+				$initNode = $node->getElementsByTagName("init");
 				$o = [
 					"visibility" => $node->getElementsByTagName("visibility")[0]->nodeValue ,
 					"static" => empty($static) || strcmp($static->nodeValue, "static") != 0 ? "" : "static" ,
 					"orm" =>  $node->getElementsByTagName("orm")[0]->nodeValue,
 					"type" => $node->getElementsByTagName("type")[0]->nodeValue ,
-					"name" => $node->getElementsByTagName("varname")[0]->nodeValue
+					"name" => $node->getElementsByTagName("varname")[0]->nodeValue,
+					"init" => ($initNode->length === 0)? null : $initNode[0]->nodeValue
 				];
 				array_push($ret, $o);
 			}
@@ -205,7 +209,7 @@ function dal($xml, $twig) {
 		};
 
 
-		echo $twig->render('class.php', 
+		$source = $twig->render('class.php', 
 			[
 				"license" => "Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) \n* https://creativecommons.org/licenses/by-sa/4.0/legalcode",
 				"namespace" => "$namespace",
@@ -235,13 +239,14 @@ function dal($xml, $twig) {
 			]
 		);
 
+		file_put_contents($installPath . DIRECTORY_SEPARATOR . $appName . DIRECTORY_SEPARATOR . "app". DIRECTORY_SEPARATOR ."src". DIRECTORY_SEPARATOR ."dao". DIRECTORY_SEPARATOR . $className .".php" , $source );
 
 	}//classes
 }
 
+createDirectoryLayout($installPath, $appName);
+dal(file_get_contents($xml,'r'), $twig, $installPath, $appName);
 
-dal(file_get_contents("model-project.xml",'r'), $twig);
-#createDirectoryLayout($argv[1], $argv[2]);
 exit;
 /*
 //$template = $twig->load('constructor.twig'); //Twig_TemplateWrapper
